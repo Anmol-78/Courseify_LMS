@@ -191,14 +191,14 @@ export const addUserRating = async (req, res) => {
       });
     }
 
-    const existingRatingIndex = course.courseRating.findIndex(
-      r => r.userId === userId
+    const existingRating = course.courseRatings.findIndex(
+      (r) => r.userId === userId
     );
 
-    if (existingRatingIndex > -1) {
-      course.courseRating[existingRatingIndex].rating = rating;
+    if (existingRating > -1) {
+      course.courseRatings[existingRating].rating = rating;
     } else {
-      course.courseRating.push({
+      course.courseRatings.push({
         userId,
         rating,
       });
