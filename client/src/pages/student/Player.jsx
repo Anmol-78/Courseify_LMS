@@ -56,10 +56,7 @@ const Player = () => {
       const token = await getToken();
       const { data } = await axios.post(
         backendUrl + "/api/user/update-course-progress",
-        {
-          courseId,
-          lectureId,
-        },
+        {courseId,lectureId},
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -83,7 +80,7 @@ const Player = () => {
       const token = await getToken();
       const { data } = await axios.post(
         backendUrl + "/api/user/get-course-progress",
-        { courseId },
+        {courseId},
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -242,10 +239,10 @@ const Player = () => {
                   {playerData.chapter}.{playerData.lecture} {playerData.lectureTitle}
                 </p>
                 <button
-  onClick={() => markLectureAsCompleted(playerData.lectureId)}
-  className="text-blue-600"
->
-  {progressData && progressData.lectureCompleted.includes(playerData.lectureId)
+              onClick={() => markLectureAsCompleted(playerData.lectureId)}
+               className="text-blue-600"
+                    >
+            {progressData && progressData.lectureCompleted.includes(playerData.lectureId)
     ? "Completed"
     : "Mark Complete"}
 </button>
