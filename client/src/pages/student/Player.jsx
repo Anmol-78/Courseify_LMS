@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import { AppContext } from "../../context/Appcontext";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { assets } from "../../assets/assets";
 import humanizeDuration from "humanize-duration";
 import YouTube from "react-youtube";
@@ -20,26 +20,33 @@ const Player = () => {
     fetchUserEnrolledCourses,
   } = useContext(AppContext);
   const { courseId } = useParams();
+  const navigate = useNavigate();
   const [courseData, setCourseData] = useState(null);
   const [openSections, setOpenSections] = useState({});
   const [playerData, setPlayerData] = useState(null);
   const [progressData, setProgressData] = useState(null);
   const [initialRating, setInitialRating] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const getCourseData = () => {
-    if (!enrolledCourses || !userData) return;
+    if (!Array.isArray(enrolledCourses) || !userData) {
+      navigate("/"); // Redirect to home if no courses
+      return;
+    }
 
-    enrolledCourses.forEach((course) => {
-      if (course._id === courseId) {
-        setCourseData(course);
-        const userRating = course.courseRatings?.find(
-          (item) => item.userId === userData._id
-        );
-        if (userRating) {
-          setInitialRating(userRating.rating);
-        }
+    const course = enrolledCourses.find((course) => course._id === courseId);
+    if (course) {
+      setCourseData(course);
+      const userRating = course.courseRatings?.find(
+        (item) => item.userId === userData._id
+      );
+      if (userRating) {
+        setInitialRating(userRating.rating);
       }
-    });
+    } else {
+      navigate("/"); // Redirect if course not found
+    }
   };
 
   const toggleSection = (index) => {
@@ -47,10 +54,21 @@ const Player = () => {
   };
 
   useEffect(() => {
-    if (enrolledCourses?.length > 0 && userData) {
-      getCourseData();
-    }
-  }, [enrolledCourses, userData]);
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        if (userData) {
+          await fetchUserEnrolledCourses();
+        }
+        setIsLoading(false);
+      } catch (error) {
+        setError("Failed to load course data");
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
+  }, [userData]);
 
   const markLectureAsCompleted = async (lectureId) => {
     try {
@@ -118,6 +136,24 @@ const Player = () => {
   useEffect(() => {
     getCourseProgress();
   }, []);
+
+  if (isLoading) {
+    return <Loading />;
+  }
+
+  if (error || !enrolledCourses || !Array.isArray(enrolledCourses)) {
+    return (
+      <div className="text-center py-10">
+        <p>{error || "Unable to load course"}</p>
+        <button
+          className="mt-4 text-blue-600"
+          onClick={() => navigate("/")}
+        >
+          Return to Home
+        </button>
+      </div>
+    );
+  }
 
   return courseData ? (
     <>

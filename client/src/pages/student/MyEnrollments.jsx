@@ -21,9 +21,15 @@ const MyEnrollments = () => {
 	} = useContext(AppContext);
 
 	const [progressArray, setProgressArray] = useState([]);
+	const [isLoading, setIsLoading] = useState(true);
 
 	const getCourseProgress = async () => {
 		try {
+			if (!Array.isArray(enrolledCourses)) {
+				setProgressArray([]);
+				return;
+			}
+
 			const token = await getToken();
 			
 			if (!enrolledCourses || enrolledCourses.length === 0) {
@@ -53,15 +59,26 @@ const MyEnrollments = () => {
 			setProgressArray(tempProgressArray);
 		} catch (error) {
 			console.error("Error fetching course progress:", error);
-			toast.error(error?.message || "Error loading course progress");
+			setProgressArray([]);
+			toast.error("Unable to fetch course progress");
 		}
 	};
 
-  useEffect(()=>{
-    if(userData){
-      fetchUserEnrolledCourses();
-    }
-  },[userData])
+  useEffect(() => {
+    const initializeData = async () => {
+      try {
+        if (userData) {
+          await fetchUserEnrolledCourses();
+        }
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error initializing:", error);
+        setIsLoading(false);
+      }
+    };
+    
+    initializeData();
+  }, [userData])
 
   useEffect(() => {
     if(enrolledCourses.length > 0) {
@@ -69,12 +86,16 @@ const MyEnrollments = () => {
     }
   }, [enrolledCourses]); // Add enrolledCourses as dependency
 
+	if (isLoading) {
+		return <div className="text-center py-10">Loading...</div>;
+	}
+
 	return (
 		<>
 		
 			<div className="md:px-36 px-8 pt-10">
 				<h1 className="text-2xl font-semibold">My Enrollments</h1>
-				{(!enrolledCourses || enrolledCourses.length === 0) ? (
+				{(!enrolledCourses || !Array.isArray(enrolledCourses) || enrolledCourses.length === 0) ? (
           <div className="text-center py-10">
             <p>No courses enrolled yet.</p>
           </div>
