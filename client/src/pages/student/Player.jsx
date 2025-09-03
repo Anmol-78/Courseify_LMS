@@ -27,14 +27,17 @@ const Player = () => {
   const [initialRating, setInitialRating] = useState(0);
 
   const getCourseData = () => {
-    enrolledCourses.map((course) => {
+    if (!enrolledCourses || !userData) return;
+
+    enrolledCourses.forEach((course) => {
       if (course._id === courseId) {
         setCourseData(course);
-        course.courseRatings.map((item) => {
-          if (item.userId === userData._id) {
-            setInitialRating(item.rating);
-          }
-        });
+        const userRating = course.courseRatings?.find(
+          (item) => item.userId === userData._id
+        );
+        if (userRating) {
+          setInitialRating(userRating.rating);
+        }
       }
     });
   };
@@ -44,10 +47,10 @@ const Player = () => {
   };
 
   useEffect(() => {
-    if (enrolledCourses.length > 0) {
+    if (enrolledCourses?.length > 0 && userData) {
       getCourseData();
     }
-  }, [enrolledCourses]);
+  }, [enrolledCourses, userData]);
 
   const markLectureAsCompleted = async (lectureId) => {
     try {
@@ -59,9 +62,9 @@ const Player = () => {
       );
 
       if (data.success) {
-        // console.log("data palyer", data);
         toast.success(data.message);
         getCourseProgress();
+        fetchUserEnrolledCourses(); // Add this line
       } else {
         toast.error(data.message);
       }
@@ -258,3 +261,4 @@ const Player = () => {
 };
 
 export default Player;
+

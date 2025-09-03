@@ -25,6 +25,11 @@ const MyEnrollments = () => {
 	const getCourseProgress = async () => {
 		try {
 			const token = await getToken();
+			
+			if (!enrolledCourses || enrolledCourses.length === 0) {
+				setProgressArray([]);
+				return;
+			}
 
 			const tempProgressArray = await Promise.all(
 				enrolledCourses.map(async (course) => {
@@ -47,7 +52,8 @@ const MyEnrollments = () => {
 
 			setProgressArray(tempProgressArray);
 		} catch (error) {
-			toast.error(error.message);
+			console.error("Error fetching course progress:", error);
+			toast.error(error?.message || "Error loading course progress");
 		}
 	};
 
@@ -57,18 +63,23 @@ const MyEnrollments = () => {
     }
   },[userData])
 
-  useEffect(()=>{
-    if(enrolledCourses.length > 0){
-      getCourseProgress();
+  useEffect(() => {
+    if(enrolledCourses.length > 0) {
+      getCourseProgress(); // This will update progress whenever enrolledCourses changes
     }
-  },[enrolledCourses])
+  }, [enrolledCourses]); // Add enrolledCourses as dependency
 
 	return (
 		<>
 		
 			<div className="md:px-36 px-8 pt-10">
-				<h1 className="text-2xl font-semibold">My EnrollMents</h1>
-				<table className="md:table-auto table-fixed w-full overflow-hidden border mt-10">
+				<h1 className="text-2xl font-semibold">My Enrollments</h1>
+				{(!enrolledCourses || enrolledCourses.length === 0) ? (
+          <div className="text-center py-10">
+            <p>No courses enrolled yet.</p>
+          </div>
+        ) : (
+          <table className="md:table-auto table-fixed w-full overflow-hidden border mt-10">
 					<thead className="text-gray-900 border-b border-gray-500/20  text-sm text-left max-sm:hidden">
 						<tr>
 							<th className="px-4 py-3 font-semibold truncate">Course</th>
@@ -127,6 +138,7 @@ const MyEnrollments = () => {
 						))}
 					</tbody>
 				</table>
+        )}
 			</div>
 			<Footer />
 		</>
