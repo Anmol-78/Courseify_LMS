@@ -54,21 +54,26 @@ const Player = () => {
   };
 
   useEffect(() => {
-    const loadData = async () => {
+    const init = async () => {
       try {
-        setIsLoading(true);
-        if (userData) {
-          await fetchUserEnrolledCourses();
+        const token = await getToken();
+        if (!token) {
+          navigate("/");
+          return;
         }
+
+        await fetchUserEnrolledCourses();
+        getCourseData();
+        await getCourseProgress();
         setIsLoading(false);
-      } catch (error) {
-        setError("Failed to load course data");
+      } catch (err) {
+        console.error("Initialization error:", err);
+        setError("Failed to load course");
         setIsLoading(false);
       }
     };
-
-    loadData();
-  }, [userData]);
+    init();
+  }, []); // Run once on mount
 
   const markLectureAsCompleted = async (lectureId) => {
     try {
@@ -133,26 +138,8 @@ const Player = () => {
     }
   };
 
-  useEffect(() => {
-    getCourseProgress();
-  }, []);
-
-  if (isLoading) {
+  if (!enrolledCourses || !courseData) {
     return <Loading />;
-  }
-
-  if (error || !enrolledCourses || !Array.isArray(enrolledCourses)) {
-    return (
-      <div className="text-center py-10">
-        <p>{error || "Unable to load course"}</p>
-        <button
-          className="mt-4 text-blue-600"
-          onClick={() => navigate("/")}
-        >
-          Return to Home
-        </button>
-      </div>
-    );
   }
 
   return courseData ? (
@@ -297,4 +284,4 @@ const Player = () => {
 };
 
 export default Player;
-
+          
