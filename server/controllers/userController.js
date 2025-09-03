@@ -126,6 +126,7 @@ export const updateUserCourseProgress = async (req, res) => {
       }
 
       processData.lectureCompleted.push(lectureId);
+      processData.completed = true;
       await processData.save();
     } else {
       await CourseProgress.create({
@@ -167,6 +168,7 @@ export const getUserCourseProgress = async (req, res) => {
 
 // Add User Ratings to Course
 export const addUserRating = async (req, res) => {
+   try {
   const userId = req.auth.userId;
   const { courseId, rating } = req.body;
 
@@ -174,7 +176,7 @@ export const addUserRating = async (req, res) => {
     return res.json({ success: false, message: "Invalid Details" });
   }
 
-  try {
+ 
     const course = await Course.findById(courseId);
 
     if (!course) {
